@@ -39,6 +39,12 @@ struct PanelView: View {
 
             Menu {
                 Toggle("Refresh expired tokens", isOn: $store.refreshExpiredTokens)
+                Toggle("Show in Dock", isOn: $store.showDockIcon)
+                Toggle("Desktop widget", isOn: $store.desktopWidgetEnabled)
+                Picker("Desktop widget size", selection: $store.desktopWidgetSize) {
+                    ForEach(DesktopWidgetSize.allCases) { Text($0.title).tag($0) }
+                }
+                .disabled(!store.desktopWidgetEnabled)
                 if !isWindow {
                     Button("Open in Window", action: openWindow)
                 }

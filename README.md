@@ -21,7 +21,7 @@ For every account you get the email, the plan, how much of the **5-hour session*
   <img src="docs/screenshots/widget-large.png" height="400" alt="Large widget">
 </p>
 
-<sub>Screenshots use the built-in demo data (`CPU_DEMO=1`), so every name in them is fictional.</sub>
+<sub>The widget designs are shared by the desktop widget and the WidgetKit widget. Screenshots use the built-in demo data (`CPU_DEMO=1`), so every name in them is fictional.</sub>
 
 ## Why
 
@@ -30,8 +30,8 @@ For every account you get the email, the plan, how much of the **5-hour session*
 - **Pick the right account before you start.** Sessions that haven't started, accounts at 90%+ and
   the next reset are all visible side by side, colour-coded (normal / warning / critical).
 - **No new logins, no API keys.** It reuses the logins Claude Code already stored for each profile.
-- **Stays out of the way.** Menu bar icon with your highest usage %, a widget for the desktop or
-  Notification Center, or a plain table in the terminal.
+- **Always reachable.** Menu bar icon with your highest usage %, a Dock icon, a desktop widget,
+  or a plain table in the terminal. A crowded menu bar can't hide it.
 - **Private.** Talks only to Anthropic's own usage endpoint. No analytics, no third-party servers,
   tokens never written to disk, logs or output.
 
@@ -63,20 +63,31 @@ Click the gauge icon. The panel lists every profile with its limits and refreshe
 | Item | What it does |
 |---|---|
 | Refresh expired tokens | On by default. See [How it authenticates](#how-it-authenticates). |
+| Show in Dock | On by default. Click the Dock icon to open the panel as a window. |
+| Desktop widget / size | On by default. See [Desktop widget](#desktop-widget). |
 | Open in Window | Shows the panel as a normal window. |
 | Open Profiles Folder | Opens `~/.local/share/claude-profiles`. |
 
-**Menu bar full?** macOS hides icons that don't fit (notably behind the notch). Just launch the app
-again (Spotlight → "Claude Profile Usage"). If it's already running, that opens the panel as a
-window. You can also ⌘-drag menu bar icons to reorder them, or use a menu bar manager like
-[Ice](https://github.com/jordanbaird/Ice).
+**Menu bar full?** macOS silently hides menu bar icons that don't fit, notably behind the notch.
+macOS has no built-in way to reveal them. You can:
 
-### Widget
+- **Click the Dock icon**, or launch the app again from Spotlight; both open the panel as a window.
+- **Use the desktop widget**, which is always visible on the desktop.
+- **Make room:** ⌘-drag icons to reorder them (icons on the left are hidden first), or turn off icons
+  you don't need in System Settings → Menu Bar (Control Center on older macOS).
+- **Use a menu bar manager** such as [Ice](https://github.com/jordanbaird/Ice) (free,
+  `brew install --cask jordanbaird-ice`) or Bartender. They tuck extra icons behind a chevron you
+  click to reveal.
 
-Right-click the desktop → **Edit Widgets…** (or open Notification Center → **Edit Widgets**),
-search **Claude Profile Usage**, and add the small, medium or large size. Pick the one listed under
-your Mac, not an iPhone widget. The widget shows what the app last fetched, so keep the app
-running.
+### Desktop widget
+
+A small, medium or large card that sits on your desktop wallpaper, below your windows, on every
+Space. Drag it anywhere; it remembers its position. Right-click it to change the size, refresh, or
+hide it. It updates live while the app runs.
+
+There is also a WidgetKit widget (Edit Widgets → "Claude Profile Usage"). macOS's widget gallery
+may not list widgets from apps signed locally without an Apple developer certificate, which is
+how this project builds by default. That's why the desktop widget above exists.
 
 ### Terminal
 
@@ -157,7 +168,7 @@ Layout:
 | `Sources/ClaudeProfileUsage` | SwiftUI menu bar app |
 | `Sources/ClaudeProfileUsageWidget` + `Sources/UsageWidgetViews` | WidgetKit extension and its views |
 | `Sources/claude-usage` | terminal command |
-| `scripts/` | bundle, install and uninstall |
+| `scripts/` | bundle, install, uninstall, and `make-icon.sh` (regenerates `AppIcon.icns`) |
 
 The app and the widget are ad-hoc signed locally; no Apple developer account is needed.
 

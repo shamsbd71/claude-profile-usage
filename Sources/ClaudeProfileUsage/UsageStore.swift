@@ -16,13 +16,29 @@ final class UsageStore: ObservableObject {
     @Published var refreshExpiredTokens: Bool {
         didSet { UserDefaults.standard.set(refreshExpiredTokens, forKey: Self.refreshKey) }
     }
+    /// A Dock icon keeps the app reachable when the menu bar is too full to show its icon.
+    @Published var showDockIcon: Bool {
+        didSet { UserDefaults.standard.set(showDockIcon, forKey: "showDockIcon") }
+    }
+    @Published var desktopWidgetEnabled: Bool {
+        didSet { UserDefaults.standard.set(desktopWidgetEnabled, forKey: "desktopWidgetEnabled") }
+    }
+    @Published var desktopWidgetSize: DesktopWidgetSize {
+        didSet { UserDefaults.standard.set(desktopWidgetSize.rawValue, forKey: "desktopWidgetSize") }
+    }
 
     private var loops: [Task<Void, Never>] = []
-    /// `CPU_DEMO=1` shows fictional accounts instead of reading the Keychain.
+    /// `CPU_DEMO=1` shows fictional accounts instead of reading the Keychain. Rendering screenshots
+    /// (`CPU_RENDER`) always uses demo data so real accounts can't end up in docs/screenshots.
     let isDemo = ProcessInfo.processInfo.environment["CPU_DEMO"] != nil
+        || ProcessInfo.processInfo.environment["CPU_RENDER"] != nil
 
     init() {
-        refreshExpiredTokens = UserDefaults.standard.object(forKey: Self.refreshKey) as? Bool ?? true
+        let defaults = UserDefaults.standard
+        refreshExpiredTokens = defaults.object(forKey: Self.refreshKey) as? Bool ?? true
+        showDockIcon = defaults.object(forKey: "showDockIcon") as? Bool ?? true
+        desktopWidgetEnabled = defaults.object(forKey: "desktopWidgetEnabled") as? Bool ?? true
+        desktopWidgetSize = DesktopWidgetSize(rawValue: defaults.string(forKey: "desktopWidgetSize") ?? "") ?? .medium
     }
 
     func start() {

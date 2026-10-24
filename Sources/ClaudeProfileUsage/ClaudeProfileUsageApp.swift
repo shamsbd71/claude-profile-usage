@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 import UsageCore
 
@@ -31,8 +32,14 @@ private struct MenuBarLabel: View {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let store = UsageStore()
     private var window: NSWindow?
+    private var desktopWidget: DesktopWidgetController?
+    private var cancellables: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if let path = ProcessInfo.processInfo.environment["CPU_RENDER_ICON"] {
+            let ok = ScreenshotRenderer.renderIcon(to: URL(fileURLWithPath: path))
+            exit(ok ? 0 : 1)
+        }
         if let dir = ProcessInfo.processInfo.environment["CPU_RENDER"] {
             Task {
                 await store.refresh()
@@ -42,11 +49,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         store.start()
+        store.$showDockIcon
+            .removeDuplicates()
+            .sink { [weak self] show in
+                NSApp.setActivationPolicy(show ? .regular : .accessory)
+                // Switching policy can hide the main menu or drop an open window behind others.
+                if self?.window?.isVisible == true { NSApp.activate(ignoringOtherApps: true) }
+            }
+            .store(in: &cancellables)
+        desktopWidget = DesktopWidgetController(store: store)
     }
 
+    /// Closing the window must not quit the app; it keeps running in the menu bar / Dock.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
-    /// Launching the app again (Spotlight, Finder, `open`) while it runs shows the window, so it
-    /// stays reachable when the menu bar is too crowded to show the icon.
+    /// Clicking the Dock icon, or launching the app again (Spotlight, Finder, `open`), shows the
+    /// window, so it stays reachable when the menu bar is too crowded to show the icon.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showWindow()
         return true
